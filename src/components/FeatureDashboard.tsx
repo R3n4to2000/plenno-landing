@@ -70,19 +70,21 @@ export default function FeatureDashboard() {
           {/* Bar Chart */}
           <div className="flex items-end justify-between gap-2 h-48 px-2">
             {barData.map((value, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                <div className="w-full relative group">
+              <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                <div className="w-full h-36 relative group flex items-end">
                   {/* Tooltip */}
                   <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-navy-600 text-white text-[10px] font-semibold px-2 py-1 rounded-lg whitespace-nowrap pointer-events-none z-10">
                     R$ {(value * 680).toLocaleString('pt-BR')}
                   </div>
                   <div
-                    className={`w-full rounded-t-md transition-all duration-300 group-hover:opacity-100 ${
+                    className={`w-full rounded-t-md transition-all duration-300 group-hover:opacity-100 chart-bar ${
                       i === barData.length - 1
                         ? 'bg-gradient-to-t from-blue-600 to-cyan-400'
                         : 'bg-navy-500/80 group-hover:bg-blue-500/50'
                     }`}
-                    style={{ height: `${(value / 75) * 100}%`, minHeight: '8px' }}
+                    style={{
+                      ['--bar-height' as any]: `${(value / 75) * 100}%`,
+                    }}
                   />
                 </div>
                 <span className="text-[10px] text-slate-500 font-medium">{months[i]}</span>
