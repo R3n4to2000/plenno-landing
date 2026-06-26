@@ -10,8 +10,7 @@ const features = [
   'Recuperação de falhas com IA (em breve)',
 ];
 
-function PixMockup() {
-  const qrPattern = [
+const pixQrPattern = [
     [1,1,1,1,1,1,1,0,1,0,1,0,1,1,1,1,1,1,1],
     [1,0,0,0,0,0,1,0,0,1,0,1,1,0,0,0,0,0,1],
     [1,0,1,1,1,0,1,0,1,0,1,0,1,0,1,1,1,0,1],
@@ -33,6 +32,7 @@ function PixMockup() {
     [1,1,1,1,1,1,1,0,1,0,0,1,0,1,0,1,0,1,0],
   ];
 
+function PixMockup() {
   return (
     <div className="relative w-full max-w-md mx-auto">
       <div className="absolute -inset-4 bg-emerald-500/8 rounded-3xl blur-2xl" />
@@ -56,7 +56,7 @@ function PixMockup() {
             <div className="bg-white rounded-2xl p-4 shadow-lg mb-4">
               <div className="w-36 h-36">
                 <div className="w-full h-full grid gap-[1px]" style={{ gridTemplateColumns: 'repeat(19, 1fr)', gridTemplateRows: 'repeat(19, 1fr)' }}>
-                  {qrPattern.flat().map((cell, i) => (
+                  {pixQrPattern.flat().map((cell, i) => (
                     <div key={i} className={cell ? 'bg-navy-900 rounded-[0.5px]' : 'bg-white'} />
                   ))}
                 </div>

@@ -14,7 +14,22 @@ export default function LandingHeader() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setIsScrolled(window.scrollY > 20);
+    let ticking = false;
+
+    const updateScrolledState = () => {
+      const nextScrolled = window.scrollY > 20;
+      setIsScrolled((current) => (current === nextScrolled ? current : nextScrolled));
+      ticking = false;
+    };
+
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(updateScrolledState);
+        ticking = true;
+      }
+    };
+
+    updateScrolledState();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
@@ -22,10 +37,15 @@ export default function LandingHeader() {
   useEffect(() => {
     if (isMobileOpen) {
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     }
-    return () => { document.body.style.overflow = ''; };
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
   }, [isMobileOpen]);
 
   const handleNavClick = () => setIsMobileOpen(false);

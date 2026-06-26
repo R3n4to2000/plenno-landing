@@ -17,9 +17,18 @@ import FinalCTA from './components/FinalCTA';
 import LandingFooter from './components/LandingFooter';
 
 export default function App() {
-  // Intersection Observer for scroll-reveal animations
+  // Scroll reveal is desktop-only; mobile renders content immediately to avoid
+  // first-paint stalls on weaker devices.
   useEffect(() => {
+    const shouldAnimate =
+      window.matchMedia('(min-width: 768px) and (prefers-reduced-motion: no-preference)').matches;
     const reveals = document.querySelectorAll('.reveal');
+
+    if (!shouldAnimate || !('IntersectionObserver' in window)) {
+      reveals.forEach((element) => element.classList.add('active'));
+      return;
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -29,9 +38,9 @@ export default function App() {
         });
       },
       {
-        root: null, // viewport
+        root: null,
         rootMargin: '0px',
-        threshold: 0.1, // trigger early for smooth transitions
+        threshold: 0.1,
       }
     );
 

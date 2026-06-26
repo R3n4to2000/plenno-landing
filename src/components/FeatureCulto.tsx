@@ -15,8 +15,7 @@ const livePayments = [
   { name: 'Priscila M.', amount: 'R$ 120,00', time: '6 min' },
 ];
 
-function TelaoMockup() {
-  const qrPattern = [
+const liveQrPattern = [
     [1,1,1,1,1,1,1,0,1,0,1,0,1,1,1,1,1,1,1],
     [1,0,0,0,0,0,1,0,0,1,0,1,1,0,0,0,0,0,1],
     [1,0,1,1,1,0,1,0,1,0,1,0,1,0,1,1,1,0,1],
@@ -38,6 +37,7 @@ function TelaoMockup() {
     [1,1,1,1,1,1,1,0,1,0,0,1,0,1,0,1,0,1,0],
   ];
 
+function TelaoMockup() {
   return (
     <div className="relative w-full max-w-lg mx-auto">
       <div className="absolute -inset-4 bg-purple-500/8 rounded-3xl blur-2xl" />
@@ -61,7 +61,7 @@ function TelaoMockup() {
             <div className="bg-white rounded-2xl p-5 shadow-xl shadow-purple-500/10">
               <div className="w-44 h-44 sm:w-52 sm:h-52">
                 <div className="w-full h-full grid gap-[1px]" style={{ gridTemplateColumns: 'repeat(19, 1fr)', gridTemplateRows: 'repeat(19, 1fr)' }}>
-                  {qrPattern.flat().map((cell, i) => (
+                  {liveQrPattern.flat().map((cell, i) => (
                     <div key={i} className={cell ? 'bg-navy-900 rounded-[0.5px]' : 'bg-white'} />
                   ))}
                 </div>

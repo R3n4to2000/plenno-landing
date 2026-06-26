@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react';
+
 const kpis = [
   { label: 'Total Arrecadado', value: 'R$ 47.850', change: '+12.5%', positive: true, icon: '💰' },
   { label: 'Doações Confirmadas', value: '128', change: '+8', positive: true, icon: '✅' },
@@ -11,6 +13,7 @@ const kpis = [
 
 const barData = [28, 42, 35, 50, 38, 55, 45, 62, 48, 58, 65, 72];
 const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+type ChartBarStyle = CSSProperties & { '--bar-height': string };
 
 export default function FeatureDashboard() {
   return (
@@ -83,8 +86,8 @@ export default function FeatureDashboard() {
                         : 'bg-navy-500/80 group-hover:bg-blue-500/50'
                     }`}
                     style={{
-                      ['--bar-height' as any]: `${(value / 75) * 100}%`,
-                    }}
+                      '--bar-height': `${(value / 75) * 100}%`,
+                    } as ChartBarStyle}
                   />
                 </div>
                 <span className="text-[10px] text-slate-500 font-medium">{months[i]}</span>
