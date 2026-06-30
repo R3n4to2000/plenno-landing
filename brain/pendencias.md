@@ -11,3 +11,8 @@
 - Configurar `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` e `NEXT_PUBLIC_SALES_WHATSAPP_NUMBER` no ambiente de deploy.
 - Validar o envio real do formulário em ambiente com a função `/api/public/demo-leads` ativa e Supabase configurado.
 - Confirmar no WhatsApp comercial se a mensagem pré-formatada atende ao processo manual de venda.
+
+## 2026-06-30
+
+- Configurar no projeto da Vercel as variáveis `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` e `NEXT_PUBLIC_SALES_WHATSAPP_NUMBER`; o fallback de `.env.local` é apenas para teste local.
+- Remover ou marcar como teste o lead `lead.teste@example.com` salvo durante validação local, se ele tiver ficado no Supabase de produção.

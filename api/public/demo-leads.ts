@@ -1,65 +1,84 @@
-import { validateDemoLeadPayload, type DemoLeadValues } from '../../src/lib/demoLead.ts';
+/// <reference types="node" />
+
+import { existsSync, readFileSync } from 'node:fs';
+import type { IncomingHttpHeaders } from 'node:http';
+import { resolve } from 'node:path';
+import { validateDemoLeadPayload, type DemoLeadValues } from '../_demoLead.js';
 
 const maxBodyBytes = 12_000;
+let localEnvCache: Record<string, string> | null = null;
 
 type JsonBody = Record<string, unknown>;
+type ApiRequest = {
+  method?: string;
+  headers: IncomingHttpHeaders;
+  body?: unknown;
+};
+type ApiResponse = {
+  status(statusCode: number): ApiResponse;
+  setHeader(name: string, value: string | string[]): void;
+  end(body?: string): void;
+};
 
-export function OPTIONS() {
-  return new Response(null, {
-    status: 204,
-    headers: {
-      Allow: 'POST, OPTIONS',
-      'Cache-Control': 'no-store',
-    },
-  });
+export default async function handler(request: ApiRequest, response: ApiResponse) {
+  if (request.method === 'OPTIONS') {
+    sendNoContent(response);
+    return;
+  }
+
+  if (request.method === 'GET') {
+    methodNotAllowed(response);
+    return;
+  }
+
+  if (request.method !== 'POST') {
+    methodNotAllowed(response);
+    return;
+  }
+
+  await POST(request, response);
 }
 
-export function GET() {
-  return jsonResponse(
-    { error: 'Método não permitido.' },
-    {
-      status: 405,
-      headers: { Allow: 'POST' },
-    }
-  );
-}
-
-export async function POST(request: Request) {
+async function POST(request: ApiRequest, response: ApiResponse) {
   if (isBodyTooLarge(request)) {
-    return jsonResponse({ error: 'Payload muito grande.' }, { status: 413 });
+    sendJson(response, 413, { error: 'Payload muito grande.' });
+    return;
   }
 
   let payload: unknown;
 
   try {
-    payload = await request.json();
+    payload = await readJsonPayload(request);
   } catch {
-    return jsonResponse({ error: 'Envie os dados em formato JSON válido.' }, { status: 400 });
+    sendJson(response, 400, { error: 'Envie os dados em formato JSON válido.' });
+    return;
   }
 
   const validation = validateDemoLeadPayload(payload);
 
   if (!validation.isValid) {
-    return jsonResponse(
+    sendJson(
+      response,
+      422,
       {
         error: 'Revise os campos destacados e tente novamente.',
         errors: validation.errors,
-      },
-      { status: 422 }
+      }
     );
+    return;
   }
 
   const supabase = getSupabaseConfig();
 
   if (!supabase) {
     console.error('Demo lead submission failed: missing Supabase server configuration.');
-    return jsonResponse(
-      { error: 'Não foi possível salvar sua solicitação agora. Tente novamente em instantes.' },
-      { status: 500 }
-    );
+    sendJson(response, 500, {
+      error: 'Não foi possível salvar sua solicitação agora. Tente novamente em instantes.',
+    });
+    return;
   }
 
-  let insertResponse: Response;
+  let insertResponse;
 
   try {
     insertResponse = await fetch(`${supabase.url}/rest/v1/demo_leads`, {
@@ -74,46 +93,73 @@ export async function POST(request: Request) {
     });
   } catch {
     console.error('Demo lead submission failed: Supabase request error.');
-    return jsonResponse(
-      { error: 'Não foi possível salvar sua solicitação agora. Tente novamente em instantes.' },
-      { status: 502 }
-    );
+    sendJson(response, 502, {
+      error: 'Não foi possível salvar sua solicitação agora. Tente novamente em instantes.',
+    });
+    return;
   }
 
   if (!insertResponse.ok) {
+    const errorDetails = await safeReadErrorText(insertResponse);
     console.error('Demo lead submission failed: Supabase insert error.', {
       status: insertResponse.status,
       statusText: insertResponse.statusText,
+      details: errorDetails,
     });
 
-    return jsonResponse(
-      { error: 'Não foi possível salvar sua solicitação agora. Tente novamente em instantes.' },
-      { status: 502 }
-    );
+    sendJson(response, 502, {
+      error: 'Não foi possível salvar sua solicitação agora. Tente novamente em instantes.',
+    });
+    return;
   }
 
-  return jsonResponse({ success: true, lead: validation.data }, { status: 201 });
+  sendJson(response, 201, { success: true, lead: validation.data });
 }
 
-function jsonResponse(body: JsonBody, init: ResponseInit = {}) {
-  const headers = new Headers(init.headers);
-  headers.set('Content-Type', 'application/json; charset=utf-8');
-  headers.set('Cache-Control', 'no-store');
-
-  return new Response(JSON.stringify(body), {
-    ...init,
-    headers,
-  });
+function sendNoContent(response: ApiResponse) {
+  response.setHeader('Allow', 'POST, OPTIONS');
+  response.setHeader('Cache-Control', 'no-store');
+  response.status(204).end();
 }
 
-function isBodyTooLarge(request: Request): boolean {
-  const contentLength = Number(request.headers.get('content-length') ?? 0);
+function methodNotAllowed(response: ApiResponse) {
+  response.setHeader('Allow', 'POST, OPTIONS');
+  sendJson(response, 405, { error: 'Método não permitido.' });
+}
+
+function sendJson(response: ApiResponse, statusCode: number, body: JsonBody) {
+  response.setHeader('Content-Type', 'application/json; charset=utf-8');
+  response.setHeader('Cache-Control', 'no-store');
+  response.status(statusCode).end(JSON.stringify(body));
+}
+
+async function readJsonPayload(request: ApiRequest): Promise<unknown> {
+  if (typeof request.body === 'string') {
+    return JSON.parse(request.body);
+  }
+
+  if (request.body && typeof request.body === 'object') {
+    return request.body;
+  }
+
+  throw new Error('Missing JSON payload.');
+}
+
+function isBodyTooLarge(request: ApiRequest): boolean {
+  const contentLength = Number(getHeader(request.headers, 'content-length') ?? 0);
   return Number.isFinite(contentLength) && contentLength > maxBodyBytes;
 }
 
+function getHeader(
+  headers: IncomingHttpHeaders,
+  headerName: string
+): string | string[] | undefined | null {
+  return headers[headerName] ?? headers[headerName.toLowerCase()];
+}
+
 function getSupabaseConfig(): { url: string; serviceRoleKey: string } | null {
-  const rawUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE;
+  const rawUrl = readEnv('SUPABASE_URL') ?? readEnv('VITE_SUPABASE_URL');
+  const serviceRoleKey = readEnv('SUPABASE_SERVICE_ROLE_KEY') ?? readEnv('SUPABASE_SERVICE_ROLE');
   const url = rawUrl?.replace(/\/$/, '');
 
   if (!url || !serviceRoleKey) {
@@ -121,6 +167,67 @@ function getSupabaseConfig(): { url: string; serviceRoleKey: string } | null {
   }
 
   return { url, serviceRoleKey };
+}
+
+function readEnv(name: string): string | undefined {
+  return process.env[name] ?? readLocalEnvFile()[name];
+}
+
+function readLocalEnvFile(): Record<string, string> {
+  if (localEnvCache) {
+    return localEnvCache;
+  }
+
+  if (process.env.VERCEL_ENV === 'production') {
+    localEnvCache = {};
+    return localEnvCache;
+  }
+
+  localEnvCache = {};
+
+  for (const fileName of ['.env.local', '.env']) {
+    const envPath = resolve(process.cwd(), fileName);
+
+    if (!existsSync(envPath)) {
+      continue;
+    }
+
+    const lines = readFileSync(envPath, 'utf8').split(/\r?\n/);
+
+    for (const line of lines) {
+      const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
+
+      if (!match || line.trimStart().startsWith('#')) {
+        continue;
+      }
+
+      const [, key, rawValue] = match;
+      localEnvCache[key] = stripEnvQuotes(rawValue);
+    }
+  }
+
+  return localEnvCache;
+}
+
+function stripEnvQuotes(value: string): string {
+  const trimmed = value.trim();
+
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1);
+  }
+
+  return trimmed;
+}
+
+async function safeReadErrorText(response: Response): Promise<string> {
+  try {
+    return (await response.text()).slice(0, 600);
+  } catch {
+    return 'Unable to read Supabase error body.';
+  }
 }
 
 function toDemoLeadRow(lead: DemoLeadValues) {

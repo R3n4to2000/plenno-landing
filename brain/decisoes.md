@@ -14,3 +14,9 @@
 - Não usar SDK do Supabase no client para evitar insert público com anon key.
 - Expor `NEXT_PUBLIC_SALES_WHATSAPP_NUMBER` no Vite via `envPrefix`, mantendo a chave service role apenas no servidor.
 - Não abrir WhatsApp automaticamente neste primeiro fluxo; manter botão visível na página de obrigado.
+
+## 2026-06-30
+
+- Usar o formato clássico `export default async function handler(req, res)` para funções em `api/` no projeto Vite publicado pela Vercel.
+- Manter validação server-side da API em `api/_demoLead.ts` para evitar problemas de bundle/import relativo entre `api/` e `src/` no `@vercel/node`.
+- Permitir fallback local de leitura de `.env.local` apenas fora de produção, porque `vercel dev` pode ignorar o arquivo raiz e usar somente envs do projeto Vercel.
