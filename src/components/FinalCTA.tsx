@@ -1,4 +1,8 @@
+import { buildDemoRequestPath } from '../lib/navigation';
+
 export default function FinalCTA() {
+  const demoRequestHref = buildDemoRequestPath();
+
   return (
     <section id="contato" className="relative py-20 md:py-28 overflow-hidden">
       {/* Background */}
@@ -24,7 +28,7 @@ export default function FinalCTA() {
 
         <div className="reveal reveal-delay-2 flex flex-col sm:flex-row gap-4 justify-center mb-8">
           <a
-            href="#"
+            href={demoRequestHref}
             className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl hover:from-blue-500 hover:to-cyan-400 transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 gap-2"
           >
             Solicitar demonstração

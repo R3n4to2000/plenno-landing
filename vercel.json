@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/solicitar-demonstracao",
+      "destination": "/"
+    },
+    {
+      "source": "/solicitar-demonstracao/obrigado",
+      "destination": "/"
+    }
+  ]
+}

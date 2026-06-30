@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { buildDemoRequestPath } from '../lib/navigation';
 
 const navLinks = [
   { label: 'Início', href: '#inicio' },
@@ -12,6 +13,7 @@ const navLinks = [
 export default function LandingHeader() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const demoRequestHref = buildDemoRequestPath();
 
   useEffect(() => {
     let ticking = false;
@@ -92,7 +94,7 @@ export default function LandingHeader() {
               Conhecer funcionalidades
             </a>
             <a
-              href="#contato"
+              href={demoRequestHref}
               className="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl hover:from-blue-500 hover:to-cyan-400 transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5"
             >
               Solicitar demonstração
@@ -142,7 +144,7 @@ export default function LandingHeader() {
               Conhecer funcionalidades
             </a>
             <a
-              href="#contato"
+              href={demoRequestHref}
               onClick={handleNavClick}
               className="px-4 py-3 text-center text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl shadow-lg shadow-blue-500/25"
             >

@@ -15,6 +15,9 @@ import ChurchProfilesSection from './components/ChurchProfilesSection';
 import SecuritySection from './components/SecuritySection';
 import FinalCTA from './components/FinalCTA';
 import LandingFooter from './components/LandingFooter';
+import { DEMO_REQUEST_PATH, DEMO_SUCCESS_PATH } from './lib/demoLead';
+import DemoLeadPage from './pages/DemoLeadPage';
+import DemoLeadSuccessPage from './pages/DemoLeadSuccessPage';
 
 export default function App() {
   // Scroll reveal is desktop-only; mobile renders content immediately to avoid
@@ -50,6 +53,16 @@ export default function App() {
       observer.disconnect();
     };
   }, []);
+
+  const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
+
+  if (currentPath === DEMO_REQUEST_PATH) {
+    return <DemoLeadPage />;
+  }
+
+  if (currentPath === DEMO_SUCCESS_PATH) {
+    return <DemoLeadSuccessPage />;
+  }
 
   return (
     <div className="bg-navy-950 text-slate-100 font-sans min-h-screen selection:bg-blue-500/30 selection:text-white overflow-x-hidden">

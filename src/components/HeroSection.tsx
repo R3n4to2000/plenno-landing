@@ -1,3 +1,5 @@
+import { buildDemoRequestPath } from '../lib/navigation';
+
 const badges = [
   { label: 'Gestão de membros', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
   { label: 'Dízimos via Pix', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
@@ -140,6 +142,8 @@ function QrCodeMini() {
 }
 
 export default function HeroSection() {
+  const demoRequestHref = buildDemoRequestPath();
+
   return (
     <section id="inicio" className="relative min-h-screen flex items-center pt-20 pb-16 overflow-hidden">
       {/* Background Elements */}
@@ -167,7 +171,7 @@ export default function HeroSection() {
 
             <div className="reveal reveal-delay-2 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
               <a
-                href="#contato"
+                href={demoRequestHref}
                 className="inline-flex items-center justify-center px-7 py-3.5 text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl hover:from-blue-500 hover:to-cyan-400 transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 gap-2"
               >
                 Solicitar demonstração
