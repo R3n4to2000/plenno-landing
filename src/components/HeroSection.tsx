@@ -1,4 +1,5 @@
 import { buildDemoRequestPath } from '../lib/navigation';
+import { getHowItWorksHref, shouldOpenHowItWorksInNewTab } from '../lib/demoVideo';
 
 const badges = [
   { label: 'Gestão de membros', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
@@ -143,6 +144,8 @@ function QrCodeMini() {
 
 export default function HeroSection() {
   const demoRequestHref = buildDemoRequestPath();
+  const howItWorksHref = getHowItWorksHref();
+  const openHowItWorksInNewTab = shouldOpenHowItWorksInNewTab();
 
   return (
     <section id="inicio" className="relative min-h-screen flex items-center pt-20 pb-16 overflow-hidden">
@@ -180,7 +183,9 @@ export default function HeroSection() {
                 </svg>
               </a>
               <a
-                href="#como-funciona"
+                href={howItWorksHref}
+                target={openHowItWorksInNewTab ? '_blank' : undefined}
+                rel={openHowItWorksInNewTab ? 'noopener noreferrer' : undefined}
                 className="inline-flex items-center justify-center px-7 py-3.5 text-base font-semibold text-slate-200 border border-white/[0.12] rounded-xl hover:bg-white/[0.06] hover:border-white/20 transition-all duration-300 gap-2"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

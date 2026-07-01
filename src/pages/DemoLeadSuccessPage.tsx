@@ -5,6 +5,7 @@ import {
   buildWhatsAppUrl,
   type DemoLeadValues,
 } from '../lib/demoLead';
+import { getSalesWhatsAppNumber } from '../lib/whatsapp';
 
 function readStoredLead(): Partial<DemoLeadValues> {
   try {
@@ -18,7 +19,7 @@ function readStoredLead(): Partial<DemoLeadValues> {
 
 export default function DemoLeadSuccessPage() {
   const [lead] = useState<Partial<DemoLeadValues>>(readStoredLead);
-  const whatsappUrl = buildWhatsAppUrl(import.meta.env.NEXT_PUBLIC_SALES_WHATSAPP_NUMBER, lead);
+  const whatsappUrl = buildWhatsAppUrl(getSalesWhatsAppNumber(), lead);
   const whatsappMessage = buildWhatsAppMessage(lead);
 
   return (

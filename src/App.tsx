@@ -16,8 +16,10 @@ import SecuritySection from './components/SecuritySection';
 import FinalCTA from './components/FinalCTA';
 import LandingFooter from './components/LandingFooter';
 import { DEMO_REQUEST_PATH, DEMO_SUCCESS_PATH } from './lib/demoLead';
+import { HOW_IT_WORKS_PATH } from './lib/demoVideo';
 import DemoLeadPage from './pages/DemoLeadPage';
 import DemoLeadSuccessPage from './pages/DemoLeadSuccessPage';
+import HowItWorksPendingPage from './pages/HowItWorksPendingPage';
 
 export default function App() {
   // Scroll reveal is desktop-only; mobile renders content immediately to avoid
@@ -62,6 +64,10 @@ export default function App() {
 
   if (currentPath === DEMO_SUCCESS_PATH) {
     return <DemoLeadSuccessPage />;
+  }
+
+  if (currentPath === HOW_IT_WORKS_PATH) {
+    return <HowItWorksPendingPage />;
   }
 
   return (

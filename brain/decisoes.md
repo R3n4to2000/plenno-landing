@@ -20,3 +20,9 @@
 - Usar o formato clássico `export default async function handler(req, res)` para funções em `api/` no projeto Vite publicado pela Vercel.
 - Manter validação server-side da API em `api/_demoLead.ts` para evitar problemas de bundle/import relativo entre `api/` e `src/` no `@vercel/node`.
 - Permitir fallback local de leitura de `.env.local` apenas fora de produção, porque `vercel dev` pode ignorar o arquivo raiz e usar somente envs do projeto Vercel.
+
+## 2026-07-01
+
+- Usar `VITE_SALES_WHATSAPP_NUMBER` como variável pública principal para CTAs de WhatsApp na landing.
+- Usar `VITE_PLENNO_DEMO_VIDEO_URL` para alternar o botão `Ver como funciona` entre YouTube e a página interna `/como-funciona`.
+- Manter fallback temporário para `NEXT_PUBLIC_SALES_WHATSAPP_NUMBER` apenas para compatibilidade com a configuração anterior.

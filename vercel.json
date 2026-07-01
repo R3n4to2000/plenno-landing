@@ -7,6 +7,10 @@
     {
       "source": "/solicitar-demonstracao/obrigado",
       "destination": "/"
+    },
+    {
+      "source": "/como-funciona",
+      "destination": "/"
     }
   ]
 }
