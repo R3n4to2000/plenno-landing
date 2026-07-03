@@ -1,28 +1,25 @@
 import { useState, type FormEvent } from 'react';
 import {
+  DEMO_LEAD_ID_STORAGE_KEY,
   DEMO_LEAD_STORAGE_KEY,
+  DEMO_LEAD_TRACKING_TOKEN_STORAGE_KEY,
   DEMO_SUCCESS_PATH,
   bestContactTimeOptions,
   createEmptyDemoLeadFormValues,
   currentSystemOptions,
+  getDemoLeadsEndpoint,
   getTrackingParamsFromSearch,
+  logDemoLeadClientError,
   mainNeedOptions,
   membersRangeOptions,
   roleOptions,
   validateDemoLeadPayload,
+  type DemoLeadCreateResponse,
   type DemoLeadErrors,
   type DemoLeadFormValues,
-  type DemoLeadValues,
 } from '../lib/demoLead';
 
 type StringFieldName = Exclude<keyof DemoLeadFormValues, 'accepts_whatsapp_contact'>;
-
-type ApiResponse = {
-  success?: boolean;
-  lead?: DemoLeadValues;
-  error?: string;
-  errors?: DemoLeadErrors;
-};
 
 type TextFieldProps = {
   id: StringFieldName;
@@ -197,14 +194,25 @@ export default function DemoLeadPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/public/demo-leads', {
+      const endpoint = getDemoLeadsEndpoint();
+
+      if (!endpoint) {
+        logDemoLeadClientError('Demo lead submission failed: missing VITE_DEMO_LEADS_ENDPOINT.', null);
+        setStatusMessage('Não foi possível enviar sua solicitação agora.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formValues),
+        body: JSON.stringify(validation.data),
       });
-      const result = (await response.json().catch(() => ({}))) as ApiResponse;
+      const result = (await response.json().catch(() => ({}))) as DemoLeadCreateResponse;
+      const leadId = result.leadId?.trim() ?? '';
+      const trackingToken = result.trackingToken?.trim() ?? '';
 
-      if (!response.ok || !result.success) {
+      if (!response.ok || !result.success || !leadId || !trackingToken) {
         setErrors(result.errors ?? {});
         setStatusMessage(result.error ?? 'Não foi possível enviar sua solicitação agora.');
         setIsSubmitting(false);
@@ -214,16 +222,16 @@ export default function DemoLeadPage() {
       setHasSubmitted(true);
 
       try {
-        window.sessionStorage.setItem(
-          DEMO_LEAD_STORAGE_KEY,
-          JSON.stringify(result.lead ?? validation.data)
-        );
+        window.sessionStorage.setItem(DEMO_LEAD_STORAGE_KEY, JSON.stringify(validation.data));
+        window.sessionStorage.setItem(DEMO_LEAD_ID_STORAGE_KEY, leadId);
+        window.sessionStorage.setItem(DEMO_LEAD_TRACKING_TOKEN_STORAGE_KEY, trackingToken);
       } catch {
         // Session storage can be unavailable in restricted browser modes.
       }
 
       window.location.assign(DEMO_SUCCESS_PATH);
-    } catch {
+    } catch (error) {
+      logDemoLeadClientError('Demo lead submission failed.', error);
       setStatusMessage('Não foi possível conectar agora. Tente novamente em instantes.');
       setIsSubmitting(false);
     }

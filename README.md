@@ -1,75 +1,64 @@
-# React + TypeScript + Vite
+# Plenno Landing Page
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Landing page estática do Plenno em Vite + React.
 
-Currently, two official plugins are available:
+## Desenvolvimento
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Variáveis de ambiente
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Este projeto é uma landing estática. Use somente variáveis públicas com prefixo `VITE_`, pois elas são embutidas no bundle final no momento do build.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```env
+VITE_DEMO_LEADS_ENDPOINT=https://acsgeowqlomkltrwanqo.supabase.co/functions/v1/demo-leads
+VITE_DEMO_LEADS_WHATSAPP_CLICKED_ENDPOINT=https://acsgeowqlomkltrwanqo.supabase.co/functions/v1/demo-leads-whatsapp-clicked
+VITE_SALES_WHATSAPP_NUMBER=5562982801925
+VITE_PLENNO_DEMO_VIDEO_URL=
 ```
+
+Não coloque `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_URL` server-side ou qualquer segredo no frontend.
+
+## Integração Supabase
+
+O formulário envia leads para `VITE_DEMO_LEADS_ENDPOINT` e espera:
+
+```json
+{
+  "success": true,
+  "leadId": "uuid-do-lead",
+  "trackingToken": "uuid-do-token"
+}
+```
+
+Na página de obrigado, o botão `Continuar no WhatsApp` tenta chamar `VITE_DEMO_LEADS_WHATSAPP_CLICKED_ENDPOINT` com `leadId` e `trackingToken`. Se o tracking falhar, o WhatsApp abre mesmo assim.
+
+As Edge Functions precisam aceitar CORS para o domínio final da HostGator em `ALLOWED_ORIGINS`, além dos domínios locais usados em testes:
+
+```txt
+https://seudominio.com.br
+http://localhost:5173
+http://localhost:3000
+```
+
+## Build estático para HostGator
+
+```bash
+npm run lint
+npm run build
+```
+
+Envie o conteúdo de `dist/` para a HostGator. O arquivo `public/.htaccess` é copiado para `dist/.htaccess` no build e habilita fallback SPA para rotas como:
+
+- `/solicitar-demonstracao`
+- `/solicitar-demonstracao/obrigado`
+- `/como-funciona`
+
+As variáveis `VITE_` precisam existir antes de rodar `npm run build`.
+
+## Vercel
+
+A produção da landing não depende de `npx vercel dev`, Vercel Functions ou envs da Vercel. O `vercel.json` pode permanecer apenas para preview temporário, se ainda for útil.

@@ -26,3 +26,11 @@
 - Usar `VITE_SALES_WHATSAPP_NUMBER` como variável pública principal para CTAs de WhatsApp na landing.
 - Usar `VITE_PLENNO_DEMO_VIDEO_URL` para alternar o botão `Ver como funciona` entre YouTube e a página interna `/como-funciona`.
 - Manter fallback temporário para `NEXT_PUBLIC_SALES_WHATSAPP_NUMBER` apenas para compatibilidade com a configuração anterior.
+
+## 2026-07-03
+
+- Preparar a landing para hospedagem estática na HostGator, sem dependência de Vercel Functions em produção.
+- Enviar solicitações de demonstração para Supabase Edge Function via `VITE_DEMO_LEADS_ENDPOINT`.
+- Registrar clique no WhatsApp via Supabase Edge Function `VITE_DEMO_LEADS_WHATSAPP_CLICKED_ENDPOINT`, sem impedir a abertura do WhatsApp se o tracking falhar.
+- Usar somente variáveis públicas `VITE_` no bundle da landing; remover fallback `NEXT_PUBLIC_*` e não expor secrets do Supabase no frontend.
+- Guardar temporariamente `demoLeadId`, `demoLeadTrackingToken` e dados do lead em `sessionStorage` para a página de obrigado.

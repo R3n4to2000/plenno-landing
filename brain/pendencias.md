@@ -22,3 +22,9 @@
 - Configurar `VITE_SALES_WHATSAPP_NUMBER` nos ambientes locais e de deploy.
 - Preencher `VITE_PLENNO_DEMO_VIDEO_URL` com a URL do YouTube quando o vídeo de demonstração estiver pronto.
 - Testar o clique real do WhatsApp em celular e desktop após configurar o número comercial.
+
+## 2026-07-03
+
+- Configurar `VITE_DEMO_LEADS_ENDPOINT`, `VITE_DEMO_LEADS_WHATSAPP_CLICKED_ENDPOINT`, `VITE_SALES_WHATSAPP_NUMBER` e `VITE_PLENNO_DEMO_VIDEO_URL` antes de gerar o build enviado para a HostGator.
+- Incluir o domínio final da HostGator em `ALLOWED_ORIGINS` nas Supabase Edge Functions, mantendo `http://localhost:5173` e `http://localhost:3000` para testes.
+- Validar manualmente o fluxo real: envio do formulário, recebimento de `leadId`/`trackingToken`, clique no WhatsApp, status `whatsapp_clicked` e preenchimento de `whatsapp_clicked_at`.

@@ -1,24 +1,27 @@
 export const SALES_WHATSAPP_MESSAGE = 'Olá, estou com dúvida sobre o Plenno.';
 
-export function normalizePhoneDigits(phone: string | undefined): string {
-  return (phone ?? '').replace(/\D/g, '');
+export function normalizePhoneDigits(phone: string): string {
+  return phone.replace(/\D/g, '');
 }
 
-export function buildWhatsAppUrl(phone: string | undefined, message: string): string | null {
+export function buildWhatsAppUrl(phone: string, message: string): string {
   const normalizedPhone = normalizePhoneDigits(phone);
-  const trimmedMessage = message.trim();
+  const encodedMessage = encodeURIComponent(message.trim());
 
-  if (!normalizedPhone || !trimmedMessage) {
-    return null;
-  }
-
-  return `https://wa.me/${normalizedPhone}?text=${encodeURIComponent(trimmedMessage)}`;
+  return `https://wa.me/${normalizedPhone}?text=${encodedMessage}`;
 }
 
-export function getSalesWhatsAppNumber(): string | undefined {
-  return import.meta.env.VITE_SALES_WHATSAPP_NUMBER || import.meta.env.NEXT_PUBLIC_SALES_WHATSAPP_NUMBER;
+export function getSalesWhatsAppNumber(): string {
+  return (import.meta.env.VITE_SALES_WHATSAPP_NUMBER ?? '').trim();
 }
 
 export function buildSalesWhatsAppUrl(message = SALES_WHATSAPP_MESSAGE): string | null {
-  return buildWhatsAppUrl(getSalesWhatsAppNumber(), message);
+  const phone = getSalesWhatsAppNumber();
+  const trimmedMessage = message.trim();
+
+  if (!phone || !trimmedMessage) {
+    return null;
+  }
+
+  return buildWhatsAppUrl(phone, trimmedMessage);
 }

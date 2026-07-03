@@ -1,6 +1,10 @@
+import { buildWhatsAppUrl as buildGenericWhatsAppUrl } from './whatsapp';
+
 export const DEMO_REQUEST_PATH = '/solicitar-demonstracao';
 export const DEMO_SUCCESS_PATH = '/solicitar-demonstracao/obrigado';
-export const DEMO_LEAD_STORAGE_KEY = 'plenno.demoLead';
+export const DEMO_LEAD_STORAGE_KEY = 'demoLeadData';
+export const DEMO_LEAD_ID_STORAGE_KEY = 'demoLeadId';
+export const DEMO_LEAD_TRACKING_TOKEN_STORAGE_KEY = 'demoLeadTrackingToken';
 
 export const roleOptions = [
   'Pastor',
@@ -89,6 +93,14 @@ export type DemoLeadValues = {
 export type DemoLeadErrors = Partial<Record<keyof DemoLeadFormValues | 'form', string>>;
 type DemoLeadStringField = Exclude<keyof DemoLeadFormValues, 'accepts_whatsapp_contact'>;
 
+export type DemoLeadCreateResponse = {
+  success?: boolean;
+  leadId?: string;
+  trackingToken?: string;
+  error?: string;
+  errors?: DemoLeadErrors;
+};
+
 type ValidationResult =
   | { isValid: true; data: DemoLeadValues; errors: DemoLeadErrors }
   | { isValid: false; data: null; errors: DemoLeadErrors };
@@ -136,7 +148,7 @@ export function createEmptyDemoLeadFormValues(): DemoLeadFormValues {
     utm_campaign: '',
     utm_content: '',
     utm_term: '',
-    source: '',
+    source: 'landing',
   };
 }
 
@@ -148,11 +160,14 @@ export function getTrackingParamsFromSearch(search: string): Record<TrackingPara
     utm_campaign: '',
     utm_content: '',
     utm_term: '',
-    source: '',
+    source: 'landing',
   };
 
   for (const paramName of trackingParamNames) {
-    tracking[paramName] = sanitizeText(query.get(paramName) ?? '', textLimits[paramName]);
+    tracking[paramName] = sanitizeText(
+      query.get(paramName) ?? (paramName === 'source' ? 'landing' : ''),
+      textLimits[paramName]
+    );
   }
 
   return tracking;
@@ -221,6 +236,50 @@ export function validateDemoLeadPayload(payload: unknown): ValidationResult {
   return { isValid: true, data: normalized, errors };
 }
 
+export function getDemoLeadsEndpoint(): string {
+  return (import.meta.env.VITE_DEMO_LEADS_ENDPOINT ?? '').trim();
+}
+
+export function getDemoLeadsWhatsAppClickedEndpoint(): string {
+  return (import.meta.env.VITE_DEMO_LEADS_WHATSAPP_CLICKED_ENDPOINT ?? '').trim();
+}
+
+export async function markDemoLeadWhatsAppClicked(
+  leadId: string,
+  trackingToken: string,
+  signal?: AbortSignal
+): Promise<void> {
+  const endpoint = getDemoLeadsWhatsAppClickedEndpoint();
+
+  if (!endpoint || !leadId || !trackingToken) {
+    return;
+  }
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ leadId, trackingToken }),
+    keepalive: true,
+    signal,
+  });
+
+  if (!response.ok) {
+    throw new Error(`WhatsApp tracking failed with status ${response.status}`);
+  }
+
+  const result = (await response.json().catch(() => null)) as unknown;
+
+  if (isRecord(result) && result.success === false) {
+    throw new Error(readString(result.error) || 'WhatsApp tracking was rejected.');
+  }
+}
+
+export function logDemoLeadClientError(message: string, error: unknown): void {
+  if (import.meta.env.DEV) {
+    console.error(message, error);
+  }
+}
+
 export function buildWhatsAppMessage(lead: Partial<DemoLeadValues>): string {
   const valueOrFallback = (value: string | null | undefined) => sanitizeText(value ?? '', 180) || 'Não informado';
 
@@ -238,15 +297,17 @@ export function buildWhatsAppMessage(lead: Partial<DemoLeadValues>): string {
   ].join('\n');
 }
 
-export function buildWhatsAppUrl(phoneNumber: string | undefined, lead: Partial<DemoLeadValues>): string | null {
-  const digits = normalizePhoneDigits(phoneNumber ?? '');
+export function buildDemoLeadWhatsAppUrl(
+  phoneNumber: string,
+  lead: Partial<DemoLeadValues>
+): string | null {
+  const digits = normalizePhoneDigits(phoneNumber);
 
   if (!digits) {
     return null;
   }
 
-  const numberWithCountryCode = digits.startsWith('55') ? digits : `55${digits}`;
-  return `https://wa.me/${numberWithCountryCode}?text=${encodeURIComponent(buildWhatsAppMessage(lead))}`;
+  return buildGenericWhatsAppUrl(digits, buildWhatsAppMessage(lead));
 }
 
 function coerceDemoLeadPayload(payload: unknown): DemoLeadFormValues {
